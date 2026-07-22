@@ -1,0 +1,89 @@
+name: Keepsong CI/CD Quality Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  frontend-ci:
+    name: Frontend Quality Gate (Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/web
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Next.js Production Build
+        run: npm run build
+
+  backend-ci:
+    name: Backend & AI Test Gate (FastAPI + Postgres Vector)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: keepsong_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: ./apps/api
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: apps/api/requirements.txt
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Database Migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/keepsong_test
+          JWT_SECRET: ci_pipeline_secret_key_123
+        run: alembic upgrade head
+
+      - name: Execute Full Pytest Test Suite
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/keepsong_test
+          JWT_SECRET: ci_pipeline_secret_key_123
+        run: pytest -v
+
+      - name: Execute AI Evaluation Harness
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/keepsong_test
+          JWT_SECRET: ci_pipeline_secret_key_123
+        run: python -m eval.run

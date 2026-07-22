@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: keepsong_postgres_prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-keepsong}
+      POSTGRES_USER: ${POSTGRES_USER:-keepsong_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-keepsong_secure_pass_123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-keepsong_user} -d ${POSTGRES_DB:-keepsong}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: keepsong_api_prod
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-keepsong_user}:${POSTGRES_PASSWORD:-keepsong_secure_pass_123}@db:5432/${POSTGRES_DB:-keepsong}
+      JWT_SECRET: ${JWT_SECRET:-production_secret_key_change_in_env_file_99}
+      NIM_API_KEY: ${NIM_API_KEY}
+      ASR_API_KEY: ${ASR_API_KEY}
+      OBJECT_STORAGE_ACCESS_KEY: ${OBJECT_STORAGE_ACCESS_KEY}
+      OBJECT_STORAGE_SECRET_KEY: ${OBJECT_STORAGE_SECRET_KEY}
+      OBJECT_STORAGE_BUCKET: ${OBJECT_STORAGE_BUCKET}
+      SENTRY_DSN: ${SENTRY_DSN}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_prod_data:

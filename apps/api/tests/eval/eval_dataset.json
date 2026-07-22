@@ -1,0 +1,162 @@
+{
+  "benchmark_version": "1.0",
+  "dataset_description": "Synthetic benchmark evaluation dataset for Keepsong AI classification, decade estimation, entity extraction, and retrieval quality.",
+  "transcripts": [
+    {
+      "id": "rec-01",
+      "text": "I had a black retriever named Buster when I was ten years old. He would walk me to the bus stop every morning.",
+      "expected_theme": "childhood",
+      "expected_decade": "1960s",
+      "expected_entities": ["Buster"]
+    },
+    {
+      "id": "rec-02",
+      "text": "My first job was at the local bakery in 1972. I used to get up at five in the morning to bake fresh sourdough bread.",
+      "expected_theme": "career",
+      "expected_decade": "1970s",
+      "expected_entities": ["Local Bakery"]
+    },
+    {
+      "id": "rec-03",
+      "text": "We got married at St. Mary's church in June 1968. It was a beautiful sunny afternoon and Sarah was our flower girl.",
+      "expected_theme": "romance/wedding",
+      "expected_decade": "1960s",
+      "expected_entities": ["Sarah", "Wedding"]
+    },
+    {
+      "id": "rec-04",
+      "text": "Our daughter Sarah was born in 1975. The whole family gathered at the hospital to welcome her home.",
+      "expected_theme": "family",
+      "expected_decade": "1970s",
+      "expected_entities": ["Sarah"]
+    },
+    {
+      "id": "rec-05",
+      "text": "We bought our first home in Springfield in 1980. The house had a big porch where we sat every evening.",
+      "expected_theme": "place/home",
+      "expected_decade": "1980s",
+      "expected_entities": ["Springfield"]
+    },
+    {
+      "id": "rec-06",
+      "text": "I remember playing kickball in the alley behind our elementary school during summer recess.",
+      "expected_theme": "childhood",
+      "expected_decade": "1960s",
+      "expected_entities": []
+    },
+    {
+      "id": "rec-07",
+      "text": "I worked as an accountant for thirty years at the downtown firm starting in 1985.",
+      "expected_theme": "career",
+      "expected_decade": "1980s",
+      "expected_entities": []
+    },
+    {
+      "id": "rec-08",
+      "text": "We tied the knot during a quiet ceremony on the beach during our vacation in 1970.",
+      "expected_theme": "romance/wedding",
+      "expected_decade": "1970s",
+      "expected_entities": ["Wedding"]
+    },
+    {
+      "id": "rec-09",
+      "text": "Every Sunday my grandmother would cook a giant dinner for all fifteen grandchildren.",
+      "expected_theme": "family",
+      "expected_decade": "1960s",
+      "expected_entities": []
+    },
+    {
+      "id": "rec-10",
+      "text": "The old cabin by Lake Tahoe was my favorite place to spend winters in the nineties.",
+      "expected_theme": "place/home",
+      "expected_decade": "1990s",
+      "expected_entities": ["Lake Tahoe"]
+    },
+    {
+      "id": "rec-11",
+      "text": "I won a blue ribbon at the county fair for my apple pie in 1978.",
+      "expected_theme": "other",
+      "expected_decade": "1970s",
+      "expected_entities": []
+    },
+    {
+      "id": "rec-12",
+      "text": "I remember when we got our very first black and white television set in the living room.",
+      "expected_theme": "place/home",
+      "expected_decade": "1950s",
+      "expected_entities": []
+    },
+    {
+      "id": "rec-13",
+      "text": "Sarah took her first steps in the back yard near the rose bushes.",
+      "expected_theme": "family",
+      "expected_decade": "1970s",
+      "expected_entities": ["Sarah"]
+    },
+    {
+      "id": "rec-14",
+      "text": "I served as the high school newspaper editor during my senior year in 1965.",
+      "expected_theme": "career",
+      "expected_decade": "1960s",
+      "expected_entities": []
+    },
+    {
+      "id": "rec-15",
+      "text": "We celebrated our twenty-fifth wedding anniversary with a trip to Paris.",
+      "expected_theme": "romance/wedding",
+      "expected_decade": "1990s",
+      "expected_entities": ["Wedding"]
+    },
+    {
+      "id": "rec-16",
+      "text": "My brother David and I built a treehouse in the giant oak tree.",
+      "expected_theme": "childhood",
+      "expected_decade": "1960s",
+      "expected_entities": ["David"]
+    }
+  ],
+  "search_queries": [
+    {
+      "query_id": "q1",
+      "query_text": "getting married",
+      "filter_decade": null,
+      "filter_theme": null,
+      "expected_relevant_ids": ["rec-03", "rec-08", "rec-15"]
+    },
+    {
+      "query_id": "q2",
+      "query_text": "getting married in the sixties",
+      "filter_decade": "1960s",
+      "filter_theme": null,
+      "expected_relevant_ids": ["rec-03"]
+    },
+    {
+      "query_id": "q3",
+      "query_text": "stories mentioning Sarah",
+      "filter_decade": null,
+      "filter_theme": null,
+      "expected_relevant_ids": ["rec-03", "rec-04", "rec-13"]
+    },
+    {
+      "query_id": "q4",
+      "query_text": "first job baking bread",
+      "filter_decade": null,
+      "filter_theme": null,
+      "expected_relevant_ids": ["rec-02"]
+    },
+    {
+      "query_id": "q5",
+      "query_text": "childhood pet dog",
+      "filter_decade": null,
+      "filter_theme": null,
+      "expected_relevant_ids": ["rec-01"]
+    },
+    {
+      "query_id": "q6",
+      "query_text": "home living room in 1980s",
+      "filter_decade": "1980s",
+      "filter_theme": "place/home",
+      "expected_relevant_ids": ["rec-05"]
+    }
+  ]
+}
