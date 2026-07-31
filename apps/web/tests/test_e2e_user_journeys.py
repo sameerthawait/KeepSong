@@ -4,16 +4,38 @@ from sqlalchemy.orm import Session
 from uuid import uuid4
 
 from main import app
-from app.db import SessionLocal
+from app.db import SessionLocal, get_db
 from app.models import Caregiver, Patient, CaregiverPatientAccess, ConsentRecord, StoryPrompt, FamilyMember, Recording, AuditLog
 from app.core.security import get_password_hash, create_access_token
 from app.ai.embeddings import generate_embedding
 
 client = TestClient(app)
 
+@pytest.fixture(autouse=True)
+def clean_db():
+    db = SessionLocal()
+    
+    def _override_get_db():
+        try:
+            yield db
+        finally:
+            pass
 
+    app.dependency_overrides[get_db] = _override_get_db
 
-def test_e2e_patient_checkin_happy_path(clean_db: Session):
+    try:
+        db.query(AuditLog).delete()
+        db.query(Recording).delete()
+        db.query(StoryPrompt).delete()
+        db.query(FamilyMember).delete()
+        db.query(ConsentRecord).delete()
+        db.query(CaregiverPatientAccess).delete()
+        db.query(Patient).delete()
+        db.query(Caregiver).delete()
+        db.commit()
+        yield db
+    finally:
+        db.close()
     """
     E2E Patient Check-In Journey:
     1. PIN verification (1234)
