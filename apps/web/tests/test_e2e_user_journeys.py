@@ -36,12 +36,8 @@ def clean_db():
         yield db
     finally:
         db.close()
-    """
-    E2E Patient Check-In Journey:
-    1. PIN verification (1234)
-    2. Check-in data fetch (date, weather, orientation photo, prompt)
-    3. Audio upload & recording creation
-    """
+
+def test_e2e_patient_checkin_happy_path(clean_db: Session):
     c1 = Caregiver(email="patient_e2e@example.com", password_hash=get_password_hash("pass"), name="Caregiver")
     clean_db.add(c1)
     clean_db.commit()
