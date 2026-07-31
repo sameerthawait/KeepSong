@@ -37,7 +37,7 @@ def _classify_raw(transcript: str, force_malformed_llm: bool = False) -> Dict[st
     nim_key = settings.NIM_API_KEY
     nim_url = settings.NIM_BASE_URL or "https://integrate.api.nvidia.com/v1"
 
-    model_identifier = "meta/llama-3.1-8b-instruct"
+    model_identifier = settings.NIM_MODEL
     prompt_version = "classification_v1.0"
 
     fallback_result = {
