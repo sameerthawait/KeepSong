@@ -129,4 +129,4 @@ def verify_patient_pin(payload: PatientPinVerify, db: Session = Depends(get_db))
         metadata={"patient_name": patient.name}
     )
 
-    return PatientTokenResponse(access_token=patient_token, patient_id=patient.id)
+    return PatientTokenResponse(access_token=patient_token, patient_id=patient.id, patient_name=patient.name)
