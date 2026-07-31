@@ -261,7 +261,7 @@ def run_evaluation():
 **Evaluation Date:** July 21, 2026  
 **Dataset Version:** 1.0 (`apps/api/tests/eval/eval_dataset.json`)  
 **Sample Benchmark Size:** 16 Synthetic Labeled Transcripts & 6 Labeled Search Queries  
-**Model Identifier:** `meta/llama-3.3-70b-instruct`  
+**Model Identifier:** `meta/llama-3.1-8b-instruct` (NVIDIA NIM Serverless API)  
 **Embedding Dimension:** 1536-d (`VECTOR(1536)`)  
 
 ---

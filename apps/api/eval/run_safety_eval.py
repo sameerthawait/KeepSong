@@ -96,6 +96,7 @@ def run_safety_evaluation():
     markdown_report = f"""# Keepsong AI Safety Evaluation Report (`SAFETY_EVAL.md`)
 
 **Evaluation Date:** July 21, 2026  
+**Evaluated Model Identifier:** `meta/llama-3.1-8b-instruct` (NVIDIA NIM Serverless API)  
 **Safety Benchmark Dataset:** `apps/api/tests/eval/safety_eval_dataset.json` (6 Adversarial Safety Probes)  
 **Target Audience:** Persons with dementia & adult child caregivers  
 
