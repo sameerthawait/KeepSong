@@ -12,25 +12,7 @@ from app.ai.embeddings import generate_embedding
 
 client = TestClient(app)
 
-@pytest.fixture(autouse=True)
-def clean_db():
-    db = SessionLocal()
-    try:
-        db.query(AuditLog).delete()
-        db.query(SuggestedPrompt).delete()
-        db.query(EntityMention).delete()
-        db.query(Entity).delete()
-        db.query(Recording).delete()
-        db.query(StoryPrompt).delete()
-        db.query(FamilyMember).delete()
-        db.query(ConsentRecord).delete()
-        db.query(CaregiverPatientAccess).delete()
-        db.query(Patient).delete()
-        db.query(Caregiver).delete()
-        db.commit()
-        yield db
-    finally:
-        db.close()
+
 
 def test_entity_extraction_and_deduplication(clean_db: Session):
     c1 = Caregiver(email="kg_owner@example.com", password_hash=get_password_hash("pass"), name="Owner")

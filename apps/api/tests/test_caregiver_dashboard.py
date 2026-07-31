@@ -9,22 +9,7 @@ from app.core.security import get_password_hash, create_access_token
 
 client = TestClient(app)
 
-@pytest.fixture(autouse=True)
-def clean_db():
-    db = SessionLocal()
-    try:
-        db.query(AuditLog).delete()
-        db.query(Recording).delete()
-        db.query(StoryPrompt).delete()
-        db.query(FamilyMember).delete()
-        db.query(ConsentRecord).delete()
-        db.query(CaregiverPatientAccess).delete()
-        db.query(Patient).delete()
-        db.query(Caregiver).delete()
-        db.commit()
-        yield db
-    finally:
-        db.close()
+
 
 def test_full_caregiver_dashboard_flow(clean_db: Session):
     # 1. Setup Owner Caregiver

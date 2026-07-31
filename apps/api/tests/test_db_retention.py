@@ -4,25 +4,8 @@ from app.db import SessionLocal
 from app.models import Caregiver, Patient, CaregiverPatientAccess, ConsentRecord, FamilyMember, StoryPrompt, Recording, AuditLog
 from app.core.security import get_password_hash
 
-@pytest.fixture(scope="function")
-def db():
-    db = SessionLocal()
-    try:
-        # Clear tables
-        db.query(AuditLog).delete()
-        db.query(Recording).delete()
-        db.query(StoryPrompt).delete()
-        db.query(FamilyMember).delete()
-        db.query(ConsentRecord).delete()
-        db.query(CaregiverPatientAccess).delete()
-        db.query(Patient).delete()
-        db.query(Caregiver).delete()
-        db.commit()
-        yield db
-    finally:
-        db.close()
-
-def test_patient_deletion_keeps_audit_logs_and_cascades_others(db: Session):
+def test_patient_deletion_keeps_audit_logs_and_cascades_others(clean_db: Session):
+    db = clean_db
     # 1. Setup Caregiver, Patient and dependencies
     caregiver = Caregiver(
         email="test_caregiver@example.com",

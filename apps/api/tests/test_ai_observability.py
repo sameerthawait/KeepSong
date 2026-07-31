@@ -13,19 +13,7 @@ from app.ai.asr import transcribe_audio
 
 client = TestClient(app)
 
-@pytest.fixture(autouse=True)
-def clean_db():
-    db = SessionLocal()
-    try:
-        db.query(AICallLog).delete()
-        db.query(AuditLog).delete()
-        db.query(Recording).delete()
-        db.query(Patient).delete()
-        db.query(Caregiver).delete()
-        db.commit()
-        yield db
-    finally:
-        db.close()
+
 
 def test_ai_call_instrumentation_wrapper(clean_db: Session):
     """

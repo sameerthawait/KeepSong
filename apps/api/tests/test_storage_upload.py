@@ -11,20 +11,7 @@ from app.core.storage import check_bucket_encryption
 
 client = TestClient(app)
 
-@pytest.fixture(autouse=True)
-def clean_db():
-    db = SessionLocal()
-    try:
-        db.query(AuditLog).delete()
-        db.query(Recording).delete()
-        db.query(ConsentRecord).delete()
-        db.query(CaregiverPatientAccess).delete()
-        db.query(Patient).delete()
-        db.query(Caregiver).delete()
-        db.commit()
-        yield db
-    finally:
-        db.close()
+
 
 def test_mime_type_and_file_size_validation(clean_db: Session):
     c1 = Caregiver(email="upload_owner@example.com", password_hash=get_password_hash("pass"), name="Owner")
