@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { getKnowledgeGraph } from "@/lib/api";
+
 export interface GraphEntity {
   id: string;
   patient_id: string;
-  type: "person" | "place" | "event" | string;
+  type: string;
   name: string;
 }
 
@@ -15,11 +18,40 @@ export interface GraphRelationship {
 }
 
 interface KnowledgeGraphViewProps {
-  entities: GraphEntity[];
-  relationships: GraphRelationship[];
+  patientId: string;
 }
 
-export default function KnowledgeGraphView({ entities, relationships }: KnowledgeGraphViewProps) {
+export default function KnowledgeGraphView({ patientId }: KnowledgeGraphViewProps) {
+  const [entities, setEntities] = useState<GraphEntity[]>([]);
+  const [relationships, setRelationships] = useState<GraphRelationship[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadGraph() {
+      setLoading(true);
+      try {
+        const res = await getKnowledgeGraph(patientId);
+        setEntities(res.entities || []);
+        setRelationships(res.relationships || []);
+      } catch (err) {
+        console.error("Failed to load knowledge graph:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (patientId) {
+      loadGraph();
+    }
+  }, [patientId]);
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-slate-800 text-amber-300 text-lg max-w-3xl mx-auto animate-pulse">
+        Loading Life Story Knowledge Graph...
+      </div>
+    );
+  }
+
   if (entities.length === 0) {
     return (
       <div className="p-8 text-center bg-slate-900/50 rounded-2xl border border-slate-800 text-slate-400 text-lg max-w-3xl mx-auto">

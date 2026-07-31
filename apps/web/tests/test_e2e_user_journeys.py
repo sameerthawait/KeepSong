@@ -11,22 +11,7 @@ from app.ai.embeddings import generate_embedding
 
 client = TestClient(app)
 
-@pytest.fixture(autouse=True)
-def clean_db():
-    db = SessionLocal()
-    try:
-        db.query(AuditLog).delete()
-        db.query(Recording).delete()
-        db.query(StoryPrompt).delete()
-        db.query(FamilyMember).delete()
-        db.query(ConsentRecord).delete()
-        db.query(CaregiverPatientAccess).delete()
-        db.query(Patient).delete()
-        db.query(Caregiver).delete()
-        db.commit()
-        yield db
-    finally:
-        db.close()
+
 
 def test_e2e_patient_checkin_happy_path(clean_db: Session):
     """

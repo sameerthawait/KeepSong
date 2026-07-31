@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { recordConsent } from "@/lib/api";
 
 interface ConsentBannerProps {
+  patientId: string;
   hasConsent: boolean;
   onConsentSubmitted: () => void;
 }
 
-export default function ConsentBanner({ hasConsent, onConsentSubmitted }: ConsentBannerProps) {
+export default function ConsentBanner({ patientId, hasConsent, onConsentSubmitted }: ConsentBannerProps) {
   const [consentBasis, setConsentBasis] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -33,7 +35,8 @@ export default function ConsentBanner({ hasConsent, onConsentSubmitted }: Consen
     setError("");
 
     try {
-      // Simulate/call API
+      // Call real backend consent endpoint
+      await recordConsent(patientId, consentBasis.trim());
       onConsentSubmitted();
     } catch (err: any) {
       setError(err.message || "Failed to record consent.");
@@ -73,7 +76,7 @@ export default function ConsentBanner({ hasConsent, onConsentSubmitted }: Consen
             <button
               type="submit"
               disabled={submitting || !consentBasis.trim()}
-              className="px-6 py-3 min-h-[48px] rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold text-lg transition shadow-lg shadow-amber-500/20"
+              className="px-6 py-3 min-h-[48px] rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold text-lg transition shadow-lg shadow-amber-500/20 cursor-pointer"
             >
               {submitting ? "Recording Consent..." : "Record & Enable Check-Ins"}
             </button>

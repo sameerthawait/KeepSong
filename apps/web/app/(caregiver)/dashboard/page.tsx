@@ -1,98 +1,108 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PatientSetupForm from "@/components/caregiver/PatientSetupForm";
 import ConsentBanner from "@/components/caregiver/ConsentBanner";
 import TimelineView, { RecordingItem } from "@/components/caregiver/TimelineView";
 import SearchBar from "@/components/caregiver/SearchBar";
 import InviteCaregiverModal from "@/components/caregiver/InviteCaregiverModal";
-import AuditLogTable, { AuditItem } from "@/components/caregiver/AuditLogTable";
+import AuditLogTable from "@/components/caregiver/AuditLogTable";
+import KnowledgeGraphView from "@/components/caregiver/KnowledgeGraphView";
+import SuggestedPromptsList, { SuggestedPromptItem } from "@/components/caregiver/SuggestedPromptsList";
+import {
+  listPatients,
+  getPatientProfile,
+  getPatientTimeline,
+  searchPatientTimeline,
+  listSuggestedPrompts,
+  retryRecording
+} from "@/lib/api";
 
 export default function CaregiverDashboardPage() {
-  const [activeTab, setActiveTab] = useState<"timeline" | "setup" | "invite" | "audit">("timeline");
+  const [activeTab, setActiveTab] = useState<"timeline" | "graph" | "prompts" | "setup" | "invite" | "audit">("timeline");
+  const [patient, setPatient] = useState<{ id: string; name: string; has_consent: boolean } | null>(null);
 
-  // Mock patient state
-  const [patient, setPatient] = useState<{ id: string; name: string; has_consent: boolean }>({
-    id: "mock-patient-101",
-    name: "John Doe",
-    has_consent: false,
-  });
+  const [timelineGroups, setTimelineGroups] = useState<any[]>([]);
+  const [allRecordings, setAllRecordings] = useState<RecordingItem[]>([]);
+  const [searchResults, setSearchResults] = useState<RecordingItem[] | null>(null);
+  const [suggestedPrompts, setSuggestedPrompts] = useState<SuggestedPromptItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Seed recordings mock data matching prompt requirements
-  const [recordings, setRecordings] = useState<RecordingItem[]>([
-    {
-      id: "rec-1",
-      patient_id: "mock-patient-101",
-      audio_url: "https://storage.googleapis.com/keepsong-mock/audio1.mp3",
-      transcript: "I had a dog named Buster when I was ten. He was a black retriever. He would follow me everywhere, even to the bus stop.",
-      theme: "childhood",
-      estimated_decade: "1960s",
-      ai_caption: "John shares a memory about Buster, his retriever dog.",
-      recorded_at: "2026-07-20T10:30:00Z",
-      processing_status: "done",
-    },
-    {
-      id: "rec-2",
-      patient_id: "mock-patient-101",
-      audio_url: "https://storage.googleapis.com/keepsong-mock/audio2.mp3",
-      transcript: "My first job was at the local bakery. I used to get up at five in the morning to bake fresh sourdough.",
-      theme: "career",
-      estimated_decade: "1970s",
-      ai_caption: "John talks about working at the local bakery in the early mornings.",
-      recorded_at: "2026-07-21T09:15:00Z",
-      processing_status: "done",
-    },
-    {
-      id: "rec-3",
-      patient_id: "mock-patient-101",
-      audio_url: "https://storage.googleapis.com/keepsong-mock/audio3.mp3",
-      transcript: "",
-      theme: "family",
-      estimated_decade: "1980s",
-      ai_caption: "Recent check-in recording.",
-      recorded_at: "2026-07-21T21:00:00Z",
-      processing_status: "transcribing",
-    },
-  ]);
-
-  const [filteredRecordings, setFilteredRecordings] = useState<RecordingItem[] | null>(null);
-
-  // Audit logs state
-  const [auditLogs, setAuditLogs] = useState<AuditItem[]>([
-    { id: "a1", action: "CREATE_PATIENT", created_at: "2026-07-19T10:00:00Z", metadata: { patient: "John Doe" } },
-    { id: "a2", action: "VIEW_TIMELINE", created_at: "2026-07-21T18:00:00Z", metadata: { path: "/patients/101/timeline" } },
-  ]);
-
-  const handleConsentSubmitted = () => {
-    setPatient({ ...patient, has_consent: true });
-    setAuditLogs([
-      { id: `a-${Date.now()}`, action: "RECORD_CONSENT", created_at: new Date().toISOString(), metadata: { basis: "proxy" } },
-      ...auditLogs,
-    ]);
-  };
-
-  const handleSearch = (query: string) => {
-    const q = query.toLowerCase();
-    const synonyms: Record<string, string[]> = {
-      dog: ["buster", "retriever", "pet", "puppy"],
-      wedding: ["marriage", "bride", "romance"],
-      bakery: ["bread", "sourdough", "work", "job"],
-    };
-
-    let terms = [q];
-    for (const [key, syns] of Object.entries(synonyms)) {
-      if (key.includes(q) || q.includes(key)) {
-        terms.push(...syns);
+  // Auto-load caregiver's accessible patient profile
+  useEffect(() => {
+    async function loadPatientData() {
+      setLoading(true);
+      try {
+        const patients = await listPatients();
+        if (patients && patients.length > 0) {
+          const current = patients[0];
+          setPatient({ id: current.id, name: current.name, has_consent: current.has_consent });
+          await refreshPatientDetails(current.id);
+        } else {
+          setPatient(null);
+        }
+      } catch (err) {
+        console.error("Failed to load patient profile:", err);
+      } finally {
+        setLoading(false);
       }
     }
+    loadPatientData();
+  }, []);
 
-    const matched = recordings.filter((r) => {
-      const text = `${r.transcript} ${r.ai_caption} ${r.theme} ${r.estimated_decade}`.toLowerCase();
-      return terms.some((t) => text.includes(t));
-    });
+  const refreshPatientDetails = async (patientId: string) => {
+    try {
+      // 1. Fetch Timeline
+      const tData = await getPatientTimeline(patientId);
+      setPatient((prev) => (prev ? { ...prev, has_consent: tData.has_consent } : null));
+      setTimelineGroups(tData.timeline || []);
 
-    setFilteredRecordings(matched);
+      const recs: RecordingItem[] = [];
+      if (tData.timeline) {
+        for (const grp of tData.timeline) {
+          if (grp.recordings) {
+            recs.push(...grp.recordings);
+          }
+        }
+      }
+      setAllRecordings(recs);
+
+      // 2. Fetch Suggested Prompts
+      const sPrompts = await listSuggestedPrompts(patientId);
+      setSuggestedPrompts(sPrompts || []);
+    } catch (err) {
+      console.error("Error refreshing patient details:", err);
+    }
   };
+
+  const handleSearch = async (query: string) => {
+    if (!patient) return;
+    try {
+      const results = await searchPatientTimeline(patient.id, query);
+      setSearchResults(results);
+    } catch (err) {
+      console.error("Search failed:", err);
+      setSearchResults([]);
+    }
+  };
+
+  const handleRetryRecording = async (recordingId: string) => {
+    if (!patient) return;
+    try {
+      await retryRecording(patient.id, recordingId);
+      await refreshPatientDetails(patient.id);
+    } catch (err) {
+      console.error("Failed to retry recording:", err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-[#FAF8F3] font-sans p-10 flex items-center justify-center text-2xl font-bold">
+        Loading Caregiver Dashboard...
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 font-sans p-6 md:p-10 space-y-8">
@@ -103,7 +113,7 @@ export default function CaregiverDashboardPage() {
             Caregiver Dashboard
           </h1>
           <p className="text-slate-400 text-lg mt-1">
-            Managing Profile for <span className="text-amber-300 font-semibold">{patient.name}</span>
+            Managing Profile for <span className="text-amber-300 font-semibold">{patient ? patient.name : "New Patient"}</span>
           </p>
         </div>
 
@@ -111,15 +121,31 @@ export default function CaregiverDashboardPage() {
         <nav className="flex flex-wrap gap-2 bg-slate-900 p-2 rounded-2xl border border-slate-800">
           <button
             onClick={() => setActiveTab("timeline")}
-            className={`px-5 py-3 rounded-xl font-bold text-base min-h-[44px] transition ${
+            className={`px-4 py-3 rounded-xl font-bold text-base min-h-[44px] transition cursor-pointer ${
               activeTab === "timeline" ? "bg-amber-500 text-slate-950 shadow-md" : "text-slate-300 hover:text-white"
             }`}
           >
             Timeline & Search
           </button>
           <button
+            onClick={() => setActiveTab("graph")}
+            className={`px-4 py-3 rounded-xl font-bold text-base min-h-[44px] transition cursor-pointer ${
+              activeTab === "graph" ? "bg-amber-500 text-slate-950 shadow-md" : "text-slate-300 hover:text-white"
+            }`}
+          >
+            Knowledge Graph
+          </button>
+          <button
+            onClick={() => setActiveTab("prompts")}
+            className={`px-4 py-3 rounded-xl font-bold text-base min-h-[44px] transition cursor-pointer ${
+              activeTab === "prompts" ? "bg-amber-500 text-slate-950 shadow-md" : "text-slate-300 hover:text-white"
+            }`}
+          >
+            Prompts Review ({suggestedPrompts.filter((p) => !p.is_approved).length})
+          </button>
+          <button
             onClick={() => setActiveTab("setup")}
-            className={`px-5 py-3 rounded-xl font-bold text-base min-h-[44px] transition ${
+            className={`px-4 py-3 rounded-xl font-bold text-base min-h-[44px] transition cursor-pointer ${
               activeTab === "setup" ? "bg-amber-500 text-slate-950 shadow-md" : "text-slate-300 hover:text-white"
             }`}
           >
@@ -127,7 +153,7 @@ export default function CaregiverDashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab("invite")}
-            className={`px-5 py-3 rounded-xl font-bold text-base min-h-[44px] transition ${
+            className={`px-4 py-3 rounded-xl font-bold text-base min-h-[44px] transition cursor-pointer ${
               activeTab === "invite" ? "bg-amber-500 text-slate-950 shadow-md" : "text-slate-300 hover:text-white"
             }`}
           >
@@ -135,39 +161,69 @@ export default function CaregiverDashboardPage() {
           </button>
           <button
             onClick={() => setActiveTab("audit")}
-            className={`px-5 py-3 rounded-xl font-bold text-base min-h-[44px] transition ${
+            className={`px-4 py-3 rounded-xl font-bold text-base min-h-[44px] transition cursor-pointer ${
               activeTab === "audit" ? "bg-amber-500 text-slate-950 shadow-md" : "text-slate-300 hover:text-white"
             }`}
           >
-            Audit Log
+            Audit Log & Telemetry
           </button>
         </nav>
       </div>
 
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Required Consent Banner */}
-        <ConsentBanner hasConsent={patient.has_consent} onConsentSubmitted={handleConsentSubmitted} />
+        {patient && (
+          <ConsentBanner
+            patientId={patient.id}
+            hasConsent={patient.has_consent}
+            onConsentSubmitted={() => refreshPatientDetails(patient.id)}
+          />
+        )}
 
         {/* Tab Content */}
-        {activeTab === "timeline" && (
+        {activeTab === "timeline" && patient && (
           <div className="space-y-8">
-            <SearchBar onSearch={handleSearch} onClear={() => setFilteredRecordings(null)} />
-            <TimelineView recordings={filteredRecordings !== null ? filteredRecordings : recordings} />
+            <SearchBar onSearch={handleSearch} onClear={() => setSearchResults(null)} />
+            
+            {/* Recommended Prompts Review Widget */}
+            {suggestedPrompts.length > 0 && (
+              <SuggestedPromptsList
+                patientId={patient.id}
+                prompts={suggestedPrompts}
+                onPromptApproved={() => refreshPatientDetails(patient.id)}
+              />
+            )}
+
+            <TimelineView
+              recordings={searchResults !== null ? searchResults : allRecordings}
+              onRetry={handleRetryRecording}
+            />
           </div>
+        )}
+
+        {activeTab === "graph" && patient && <KnowledgeGraphView patientId={patient.id} />}
+
+        {activeTab === "prompts" && patient && (
+          <SuggestedPromptsList
+            patientId={patient.id}
+            prompts={suggestedPrompts}
+            onPromptApproved={() => refreshPatientDetails(patient.id)}
+          />
         )}
 
         {activeTab === "setup" && (
           <PatientSetupForm
             onPatientCreated={(p) => {
               setPatient({ id: p.id, name: p.name, has_consent: false });
+              refreshPatientDetails(p.id);
               setActiveTab("timeline");
             }}
           />
         )}
 
-        {activeTab === "invite" && <InviteCaregiverModal patientId={patient.id} />}
+        {activeTab === "invite" && patient && <InviteCaregiverModal patientId={patient.id} />}
 
-        {activeTab === "audit" && <AuditLogTable logs={auditLogs} />}
+        {activeTab === "audit" && <AuditLogTable />}
       </div>
     </main>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { generateCaregiverInvite, claimCaregiverInvite } from "@/lib/api";
 
 interface InviteCaregiverModalProps {
   patientId: string;
@@ -10,18 +11,39 @@ export default function InviteCaregiverModal({ patientId }: InviteCaregiverModal
   const [inviteCode, setInviteCode] = useState("");
   const [claimCode, setClaimCode] = useState("");
   const [claimSuccess, setClaimSuccess] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [claiming, setClaiming] = useState(false);
 
-  const handleGenerate = () => {
-    const mockPayload = { patient_id: patientId, role: "contributor" };
-    const encoded = btoa(JSON.stringify(mockPayload));
-    setInviteCode(encoded);
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setErrorMsg("");
+    try {
+      const res = await generateCaregiverInvite(patientId, "contributor");
+      setInviteCode(res.invite_code);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to generate invite code.");
+    } finally {
+      setGenerating(false);
+    }
   };
 
-  const handleClaim = (e: React.FormEvent) => {
+  const handleClaim = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!claimCode.trim()) return;
-    setClaimSuccess("Invite claimed! Contributor access granted.");
-    setClaimCode("");
+    setClaiming(true);
+    setErrorMsg("");
+    setClaimSuccess("");
+
+    try {
+      await claimCaregiverInvite(claimCode.trim());
+      setClaimSuccess("Invite claimed successfully! Contributor access granted.");
+      setClaimCode("");
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to claim invite. Invalid or expired code.");
+    } finally {
+      setClaiming(false);
+    }
   };
 
   return (
@@ -31,6 +53,8 @@ export default function InviteCaregiverModal({ patientId }: InviteCaregiverModal
         <p className="text-slate-400 text-lg mt-1">Invite a sibling or relative to collaborate on this patient record.</p>
       </div>
 
+      {errorMsg && <p className="text-rose-400 font-semibold text-lg bg-rose-950/40 p-3 rounded-xl border border-rose-500/30">{errorMsg}</p>}
+
       {/* Generate Invite Code */}
       <div className="p-6 rounded-xl bg-slate-950 border border-slate-800 space-y-4">
         <h4 className="text-xl font-semibold text-amber-300">Generate Contributor Invite</h4>
@@ -38,9 +62,10 @@ export default function InviteCaregiverModal({ patientId }: InviteCaregiverModal
         
         <button
           onClick={handleGenerate}
-          className="px-6 py-3 min-h-[48px] bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-lg rounded-xl transition"
+          disabled={generating}
+          className="px-6 py-3 min-h-[48px] bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold text-lg rounded-xl transition cursor-pointer"
         >
-          Generate Invite Code
+          {generating ? "Generating..." : "Generate Invite Code"}
         </button>
 
         {inviteCode && (
@@ -66,10 +91,10 @@ export default function InviteCaregiverModal({ patientId }: InviteCaregiverModal
 
           <button
             type="submit"
-            disabled={!claimCode.trim()}
-            className="px-6 py-3 min-h-[48px] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-lg rounded-xl transition"
+            disabled={claiming || !claimCode.trim()}
+            className="px-6 py-3 min-h-[48px] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-lg rounded-xl transition cursor-pointer"
           >
-            Claim Access
+            {claiming ? "Claiming..." : "Claim Access"}
           </button>
         </form>
 

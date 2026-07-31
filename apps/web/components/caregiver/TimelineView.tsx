@@ -10,17 +10,19 @@ export interface RecordingItem {
   ai_caption?: string;
   recorded_at: string;
   processing_status: string;
+  failure_stage?: string;
 }
 
 interface TimelineViewProps {
   recordings: RecordingItem[];
+  onRetry?: (recordingId: string) => void;
 }
 
-export default function TimelineView({ recordings }: TimelineViewProps) {
+export default function TimelineView({ recordings, onRetry }: TimelineViewProps) {
   if (recordings.length === 0) {
     return (
-      <div className="p-12 text-center bg-slate-900/50 rounded-2xl border border-slate-800 text-slate-400 text-xl">
-        No recordings found in the timeline yet.
+      <div className="p-12 text-center bg-slate-900/50 rounded-2xl border border-slate-800 text-slate-400 text-xl max-w-5xl mx-auto">
+        No memory recordings found in the timeline.
       </div>
     );
   }
@@ -33,16 +35,30 @@ export default function TimelineView({ recordings }: TimelineViewProps) {
     groups[key].push(r);
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+  const getStatusBadge = (rec: RecordingItem) => {
+    switch (rec.processing_status) {
       case "done":
         return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✓ Processed</span>;
       case "failed":
-        return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">⚠️ Processing Failed (Retry Available)</span>;
+        return (
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
+              ⚠️ Failed ({rec.failure_stage || "pipeline"})
+            </span>
+            {onRetry && (
+              <button
+                onClick={() => onRetry(rec.id)}
+                className="px-2 py-1 text-xs font-bold rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 transition cursor-pointer"
+              >
+                Retry 🔄
+              </button>
+            )}
+          </div>
+        );
       default:
         return (
           <span className="px-3 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse">
-            ⏳ Still Processing ({status})
+            ⏳ Processing ({rec.processing_status})
           </span>
         );
     }
@@ -53,7 +69,7 @@ export default function TimelineView({ recordings }: TimelineViewProps) {
       {Object.entries(groups).map(([groupTitle, recList]) => (
         <div key={groupTitle} className="space-y-4">
           <div className="flex items-center gap-3 border-b border-slate-800 pb-3">
-            <span className="w-3 h-3 rounded-full bg-amber-400"></span>
+            <span className="w-3 h-3 rounded-full bg-[#C97B4A]"></span>
             <h3 className="text-2xl font-bold text-slate-100 tracking-wide">{groupTitle}</h3>
             <span className="text-sm text-slate-400 font-normal">({recList.length} memory recordings)</span>
           </div>
@@ -69,7 +85,7 @@ export default function TimelineView({ recordings }: TimelineViewProps) {
                     <span className="text-sm text-slate-400">
                       {new Date(rec.recorded_at).toLocaleDateString(undefined, { dateStyle: "medium" })}
                     </span>
-                    {getStatusBadge(rec.processing_status)}
+                    {getStatusBadge(rec)}
                   </div>
 
                   {rec.ai_caption && (
@@ -93,7 +109,7 @@ export default function TimelineView({ recordings }: TimelineViewProps) {
                   <audio
                     controls
                     src={rec.audio_url}
-                    className="w-full h-12 rounded-lg accent-amber-500"
+                    className="w-full h-12 rounded-lg accent-[#2E5D4E]"
                   />
                 </div>
               </div>
