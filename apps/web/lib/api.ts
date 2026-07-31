@@ -5,10 +5,18 @@ let patientToken: string | null = null;
 
 export function setCaregiverToken(token: string | null) {
   caregiverToken = token;
+  if (typeof window !== "undefined") {
+    if (token) localStorage.setItem("caregiver_token", token);
+    else localStorage.removeItem("caregiver_token");
+  }
 }
 
 export function setPatientToken(token: string | null) {
   patientToken = token;
+  if (typeof window !== "undefined") {
+    if (token) localStorage.setItem("patient_token", token);
+    else localStorage.removeItem("patient_token");
+  }
 }
 
 export async function fetchApi<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -17,7 +25,11 @@ export async function fetchApi<T = any>(endpoint: string, options: RequestInit =
     ...(options.headers as Record<string, string>),
   };
 
-  const token = caregiverToken || patientToken;
+  let token = caregiverToken || patientToken;
+  if (!token && typeof window !== "undefined") {
+    token = localStorage.getItem("caregiver_token") || localStorage.getItem("patient_token");
+  }
+
   if (token && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;
   }
