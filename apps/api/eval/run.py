@@ -1,13 +1,14 @@
 import json
 import os
 import math
+from datetime import datetime
 from typing import List, Dict, Any, Set
 from app.ai.classifier import classify_transcript
 from app.ai.embeddings import generate_embedding
 
 # Load benchmark dataset
 EVAL_DATASET_PATH = os.path.join(os.path.dirname(__file__), "..", "tests", "eval", "eval_dataset.json")
-REPORT_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "..", "EVAL_RESULTS.md")
+REPORT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "EVAL_RESULTS.md"))
 
 def _cosine_sim(v1: List[float], v2: List[float]) -> float:
     if not v1 or not v2 or len(v1) != len(v2):
@@ -255,10 +256,11 @@ def run_evaluation():
 
     e2e_success_rate = (stage_counts["stage_7_timeline_visible_verified"] / total_samples) * 100.0
 
+    current_date = datetime.now().strftime("%B %d, %Y")
     # Write EVAL_RESULTS.md report
     markdown_report = f"""# Keepsong Quantitative AI Evaluation Metrics Report
 
-**Evaluation Date:** July 21, 2026  
+**Evaluation Date:** {current_date}  
 **Dataset Version:** 1.0 (`apps/api/tests/eval/eval_dataset.json`)  
 **Sample Benchmark Size:** 16 Synthetic Labeled Transcripts & 6 Labeled Search Queries  
 **Model Identifier:** `meta/llama-3.1-8b-instruct` (NVIDIA NIM Serverless API)  

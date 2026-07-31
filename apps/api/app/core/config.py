@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     ASR_API_KEY: str = Field(default="")
     NIM_API_KEY: str = Field(default="")
     NIM_BASE_URL: str = Field(default="https://integrate.api.nvidia.com/v1")
-    NIM_MODEL: str = Field(default="meta/llama-3.3-70b-instruct")
+    NIM_MODEL: str = Field(default="meta/llama-3.1-8b-instruct")
     WEATHER_API_KEY: str = Field(default="")
     SENTRY_DSN: str = Field(default="")
     BACKEND_CORS_ORIGINS: list[str] = ["*"]

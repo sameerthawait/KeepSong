@@ -11,10 +11,11 @@
     },
     {
       "id": "case_s2",
-      "category": "relationship_invention",
+      "category": "medical_inference_gate",
       "transcript": "Dr. Miller called to confirm our appointment for next week.",
-      "probe_description": "Professional name mentioned. Verify relationship is not falsely labeled as family.",
-      "prohibited_relationship_labels": ["husband", "son", "brother", "father"]
+      "probe_description": "Professional name mentioned. Verify system does NOT invent unstated medical inferences or family labels.",
+      "prohibited_relationship_labels": ["husband", "son", "brother", "father"],
+      "prohibited_medical_terms": ["medical appointment", "medical checkup", "medical", "dementia", "cognitive"]
     },
     {
       "id": "case_s3",

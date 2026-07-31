@@ -143,27 +143,43 @@ def _classify_raw(transcript: str, force_malformed_llm: bool = False) -> Dict[st
     )
 
     try:
-        logger.info(f"[REAL NIM CALL] Calling meta/llama-3.3-70b-instruct for transcript: {transcript[:50]!r}")
-        print(f"[REAL NIM CALL] Requesting LLM response from NVIDIA NIM for: {transcript[:50]!r}", flush=True)
-        response = httpx.post(
-            f"{nim_url.rstrip('/')}/chat/completions",
-            headers={
-                "Authorization": f"Bearer {nim_key}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": model_identifier,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Transcript: {transcript}"}
-                ],
-                "temperature": 0.1,
-                "response_format": {"type": "json_object"}
-            },
-            timeout=60.0
-        )
+        max_retries = 3
+        response = None
+        for attempt in range(max_retries):
+            logger.info(f"[REAL NIM CALL] Calling {model_identifier} for transcript: {transcript[:50]!r}")
+            print(f"[REAL NIM CALL] Requesting LLM response from NVIDIA NIM for: {transcript[:50]!r}", flush=True)
+            res = httpx.post(
+                f"{nim_url.rstrip('/')}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {nim_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model_identifier,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": f"Transcript: {transcript}"}
+                    ],
+                    "temperature": 0.1,
+                    "response_format": {"type": "json_object"}
+                },
+                timeout=60.0
+            )
 
-        response.raise_for_status()
+            if res.status_code == 429 and attempt < max_retries - 1:
+                import time
+                logger.warning(f"NIM API rate limited (429). Retrying in 5s... (attempt {attempt + 1}/{max_retries})")
+                print(f"[NIM RATE LIMIT 429] Waiting 5s before retry...", flush=True)
+                time.sleep(5.0)
+                continue
+
+            res.raise_for_status()
+            response = res
+            break
+
+        if not response:
+            return fallback_result
+
         content = response.json()["choices"][0]["message"]["content"]
         raw_json = json.loads(content)
         parsed = ClassificationSchema(**raw_json).normalize()

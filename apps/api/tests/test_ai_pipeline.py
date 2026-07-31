@@ -55,7 +55,8 @@ def test_full_ai_pipeline_happy_path(clean_db: Session):
     assert result.estimated_decade == "1960s"
     assert result.ai_caption is not None
     assert result.classification_confidence >= 0.70
-    assert result.model_identifier == "meta/llama-3.3-70b-instruct"
+    from app.core.config import settings
+    assert result.model_identifier == settings.NIM_MODEL
     assert result.prompt_version == "classification_v1.0"
 
 def test_asr_failure_simulation_and_retry(clean_db: Session):
