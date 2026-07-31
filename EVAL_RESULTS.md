@@ -39,13 +39,15 @@
 
 ## 3. Search Retrieval Quality: Pure Semantic vs. SQL-Filtered
 
-Evaluation of retrieval quality ($K=3$ and $K=5$) demonstrates that **SQL-filtered vector search measurably outperforms pure semantic search**, eliminating out-of-decade false positives.
+Evaluation of retrieval quality ($K=3$ and $K=5$) compares pure semantic search against SQL-filtered vector search.
 
 | Retrieval Mode | Precision@3 | Recall@3 | Precision@5 | Recall@5 |
 | :--- | :--- | :--- | :--- | :--- |
 | **Pure Semantic Search** | 0.444 | 0.889 | 0.267 | 0.889 |
 | **SQL-Filtered Search** | **0.444** | **0.889** | **0.289** | **0.889** |
-| **Measurable Precision Improvement** | **+0.0%** | - | **+2.2%** | - |
+| **Measured Precision Delta** | **+0.0%** | - | **+2.2%** | - |
+
+> ⚠️ **Statistical Significance Note:** The +2.2% Precision@5 delta measured across $n=6$ benchmark queries is a directional observation and is not statistically meaningful at this sample size. A larger benchmark query set ($n \ge 50$) is required before claiming a conclusive precision advantage for SQL-filtered vector retrieval over pure semantic search.
 
 ---
 
