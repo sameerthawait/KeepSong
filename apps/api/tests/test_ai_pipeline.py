@@ -11,9 +11,6 @@ from app.ai.pipeline import run_ai_pipeline
 
 client = TestClient(app)
 
-@pytest.fixture(autouse=True)
-
-
 def test_full_ai_pipeline_happy_path(clean_db: Session):
     c1 = Caregiver(email="ai_owner@example.com", password_hash=get_password_hash("pass"), name="Owner")
     clean_db.add(c1)
