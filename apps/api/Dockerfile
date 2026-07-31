@@ -1,5 +1,5 @@
 # Stage 1: Build Dependencies
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
@@ -13,7 +13,7 @@ COPY requirements.txt .
 RUN pip wheel --no-cache-dir --wheel-dir /build/wheels -r requirements.txt
 
 # Stage 2: Final Production Runner Image (Non-Root User)
-FROM python:3.11-slim as runner
+FROM python:3.11-slim AS runner
 
 WORKDIR /app
 
