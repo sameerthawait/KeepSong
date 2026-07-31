@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { recordConsent } from "../../lib/api";
+import { recordConsent } from "@/lib/api";
 
 interface ConsentBannerProps {
   patientId: string;

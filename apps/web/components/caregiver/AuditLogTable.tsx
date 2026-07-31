@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAiMetrics } from "../../lib/api";
+import { getAiMetrics } from "@/lib/api";
 
 export interface AuditItem {
   id: string;

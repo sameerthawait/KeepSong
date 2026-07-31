@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { approveSuggestedPrompt } from "../../lib/api";
+import { approveSuggestedPrompt } from "@/lib/api";
 
 export interface SuggestedPromptItem {
   id: string;

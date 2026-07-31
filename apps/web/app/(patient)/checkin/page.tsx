@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import PinPad from "@/components/patient/PinPad";
 import PatientCheckInScreen from "@/components/patient/PatientCheckInScreen";
-import { verifyPatientPin, getPatientCheckIn, listPatients } from "../../../lib/api";
+import { verifyPatientPin, getPatientCheckIn, listPatients } from "@/lib/api";
 
 export default function PatientCheckInPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

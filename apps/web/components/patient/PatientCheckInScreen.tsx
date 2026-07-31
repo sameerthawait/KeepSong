@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { requestUploadUrl, createRecording } from "../../lib/api";
+import { requestUploadUrl, createRecording } from "@/lib/api";
 
 interface PatientCheckInProps {
   checkInData: {

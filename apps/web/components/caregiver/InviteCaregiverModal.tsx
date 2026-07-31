@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { generateCaregiverInvite, claimCaregiverInvite } from "../../lib/api";
+import { generateCaregiverInvite, claimCaregiverInvite } from "@/lib/api";
 
 interface InviteCaregiverModalProps {
   patientId: string;

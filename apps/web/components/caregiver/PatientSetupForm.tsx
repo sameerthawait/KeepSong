@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createPatient, addFamilyMember, addStoryPrompt, suggestPhotoCaption } from "../../lib/api";
+import { createPatient, addFamilyMember, addStoryPrompt, suggestPhotoCaption } from "@/lib/api";
 
 interface PatientSetupFormProps {
   onPatientCreated: (patient: any) => void;

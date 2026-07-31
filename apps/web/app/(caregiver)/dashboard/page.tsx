@@ -16,7 +16,7 @@ import {
   searchPatientTimeline,
   listSuggestedPrompts,
   retryRecording
-} from "../../../lib/api";
+} from "@/lib/api";
 
 export default function CaregiverDashboardPage() {
   const [activeTab, setActiveTab] = useState<"timeline" | "graph" | "prompts" | "setup" | "invite" | "audit">("timeline");
