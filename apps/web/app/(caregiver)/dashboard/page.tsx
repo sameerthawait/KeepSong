@@ -56,11 +56,7 @@ export default function CaregiverDashboardPage() {
         setPatient(null);
       }
     } catch (err: any) {
-      if (err.message && (err.message.includes("Not authenticated") || err.message.includes("status 401"))) {
-        setIsUnauthenticated(true);
-      } else {
-        console.error("Failed to load patient profile:", err);
-      }
+      setIsUnauthenticated(true);
     } finally {
       setLoading(false);
     }

@@ -40,6 +40,10 @@ export async function fetchApi<T = any>(endpoint: string, options: RequestInit =
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      setCaregiverToken(null);
+      setPatientToken(null);
+    }
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.detail || `API request failed with status ${res.status}`);
   }
