@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getKnowledgeGraph } from "@/lib/api";
+import { getKnowledgeGraph } from "../../lib/api";
 
 export interface GraphEntity {
   id: string;
